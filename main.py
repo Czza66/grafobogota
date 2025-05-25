@@ -8,8 +8,11 @@ import base64
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 # Cargar y proyectar grafo de Bogotá
-G = ox.graph_from_place("Bogotá, Colombia", network_type="drive")
-G = ox.project_graph(G)
+G_proj = ox.graph_from_place("Bogotá, Colombia", network_type="drive")
+G_proj = ox.project_graph(G_proj)  # Grafo proyectado para cálculos
+
+# Crear versión desproyectada para extraer coordenadas reales
+G = ox.project_graph(G_proj, to_crs="EPSG:4326")
 
 @app.post("/ruta-optima")
 async def calcular_ruta(coordenadas: list[str]):
@@ -24,31 +27,29 @@ async def calcular_ruta(coordenadas: list[str]):
             lon = float(partes[1].strip())
             puntos.append((lat, lon))
 
-        # Buscar nodos más cercanos en el grafo
-        nodos = [ox.distance.nearest_nodes(G, lon, lat) for lat, lon in puntos]
+        # Buscar nodos más cercanos en grafo proyectado
+        nodos = [ox.distance.nearest_nodes(G_proj, lon, lat) for lat, lon in puntos]
 
         # Construir ruta completa
         ruta_total = []
         distancia_total = 0.0
         for i in range(len(nodos) - 1):
-            tramo = nx.shortest_path(G, nodos[i], nodos[i + 1], weight='length')
+            tramo = nx.shortest_path(G_proj, nodos[i], nodos[i + 1], weight='length')
             ruta_total += tramo[:-1]
             distancia_total += sum(
-                G[u][v][0]["length"] for u, v in zip(tramo[:-1], tramo[1:])
+                G_proj[u][v][0]["length"] for u, v in zip(tramo[:-1], tramo[1:])
             )
         ruta_total.append(nodos[-1])
 
-        # Obtener coordenadas para Google Maps
+        # Obtener coordenadas reales (lat, lon) de los nodos recorridos
         coordenadas_ruta = [
             f"{G.nodes[n]['y']},{G.nodes[n]['x']}" for n in ruta_total
         ]
-        google_maps_url = (
-            "https://www.google.com/maps/dir/" + "/".join(coordenadas_ruta)
-        )
+        google_maps_url = "https://www.google.com/maps/dir/" + "/".join(coordenadas_ruta)
 
-        # Dibujar imagen del grafo con la ruta
+        # Dibujar imagen base64
         fig, ax = ox.plot_graph_route(
-            G, ruta_total, route_color="orange", node_size=0, show=False, close=False
+            G_proj, ruta_total, route_color="orange", node_size=0, show=False, close=False
         )
         buf = io.BytesIO()
         fig.savefig(buf, format="png")
