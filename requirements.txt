@@ -3,3 +3,4 @@ uvicorn
 osmnx
 networkx
 matplotlib
+scipy
