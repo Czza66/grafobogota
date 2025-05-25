@@ -1,7 +1,5 @@
 fastapi
 uvicorn
 osmnx
-matplotlib
 networkx
-scipy
-pyomo
+matplotlib
