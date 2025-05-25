@@ -1,0 +1,7 @@
+import osmnx as ox
+
+# Construir el grafo completo de Bogotá (esto sí requiere RAM en tu PC)
+G = ox.graph_from_place("Bogotá, Colombia", network_type='drive')
+
+# Guardarlo como archivo
+ox.save_graphml(G, "bogota.graphml")
