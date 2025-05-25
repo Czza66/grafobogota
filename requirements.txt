@@ -4,3 +4,4 @@ osmnx
 matplotlib
 networkx
 scipy
+pyomo
