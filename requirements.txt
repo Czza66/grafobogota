@@ -3,4 +3,3 @@ uvicorn
 osmnx
 networkx
 matplotlib
-scikit-learn
