@@ -14,7 +14,7 @@ app = FastAPI(
 )
 
 # Cargar el grafo de Bogotá
-G = ox.load_graphml("bogota.graphml")
+G = ox.graph_from_place("Bogotá, Colombia", network_type="drive")
 
 @app.post("/ruta")
 async def calcular_ruta(coordenadas: list[str]):
