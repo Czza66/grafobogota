@@ -9,6 +9,10 @@ import base64
 app = FastAPI()
 G = ox.graph_from_place("Bogotá, Colombia", network_type='drive')
 
+@app.get("/")
+def home():
+    return {"mensaje": "API en funcionamiento ✔️"}
+
 @app.post("/ruta")
 async def calcular_ruta(coordenadas: list[str]):
     try:
